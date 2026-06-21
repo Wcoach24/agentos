@@ -1,0 +1,16 @@
+# AgentOS — dependencias del Mac Mini
+# Python 3.10+ requerido por el Agent SDK.
+
+claude-agent-sdk>=0.1.0       # motor de inferencia bajo tu plan Max 20x
+langgraph>=0.2.0              # orquestación: grafo, checkpointing, interrupt/resume
+langgraph-checkpoint-sqlite>=2.0.0   # persistencia SQLite (resumible tras crash)
+pyyaml>=6.0                  # carga de mission.yaml
+anyio>=4.0                   # runtime async que usa el SDK
+
+# OJO (verificado 2026-06-16): el SDK trae un CLI EMBEBIDO para EJECUTAR, pero el
+# LOGIN OAuth del plan necesita el CLI 'claude' instalado aparte (una vez):
+#     npm install -g @anthropic-ai/claude-code   (si no hay npm: brew install node)
+#     claude            # login en el navegador, elige tu plan Max
+#     claude /status    # confirma "plan", no API key
+# Sin este login el SDK no tiene credenciales y falla ("Claude Code returned an error").
+# IMAP/SMTP usan stdlib (imaplib/smtplib), sin dependencias extra.

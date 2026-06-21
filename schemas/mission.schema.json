@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AgentOS Mission",
+  "description": "Contrato de handoff: lo que un hilo de Claude.ai entrega al sistema autónomo del Mac Mini.",
+  "type": "object",
+  "required": ["id", "title", "objective", "definition_of_done", "budget", "gates"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identificador único, slug. Ej: 2026-06-16-geo-es-dossier"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "objective": {
+      "type": "string",
+      "description": "El objetivo en 1-2 frases. Qué tiene que ser verdad al terminar."
+    },
+    "context": {
+      "type": "string",
+      "description": "Contexto destilado del hilo. Lo que el agente necesita saber para no empezar de cero."
+    },
+    "done_level": {
+      "type": "string",
+      "enum": ["staging", "production"],
+      "default": "staging",
+      "description": "Listón de 'terminado'. 'staging' = vivo en una URL gratis (p.ej. *.vercel.app) HTTP 200 + tests, sin tocar dinero (camino 100% autónomo). 'production' = dominio propio/infra de pago, implica gates."
+    },
+    "priority": {
+      "type": "integer",
+      "default": 0,
+      "description": "El watcher corre en serie; mayor priority salta la cola. 0 = normal."
+    },
+    "definition_of_done": {
+      "type": "array",
+      "description": "Lista de criterios VERIFICABLES con evidencia objetiva. OBLIGATORIO: al menos un criterio debe usar un check de MÁQUINA (file_exists, http_status, command_exit_zero, file_contains). agent_judgment SUMA calidad pero NO puede cerrar una misión solo (el verificador es el corazón; 'done' no debe ser falseable por un LLM).",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "check", "verify"],
+        "properties": {
+          "id": { "type": "string" },
+          "check": { "type": "string", "description": "Qué debe cumplirse, en lenguaje natural." },
+          "verify": {
+            "type": "object",
+            "description": "Cómo lo comprueba el verificador, de forma objetiva.",
+            "required": ["type"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["file_exists", "http_status", "command_exit_zero", "file_contains", "agent_judgment"]
+              },
+              "target": { "type": "string", "description": "Ruta, URL o comando según el type." },
+              "expected": { "type": "string", "description": "Valor esperado (status, substring, etc.)." },
+              "rubric": { "type": "string", "description": "Solo para agent_judgment: criterio que el verificador subagente aplica." }
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Límites duros. Ej: 'no publicar nada en redes', 'no tocar repos fuera de X'."
+    },
+    "budget": {
+      "type": "object",
+      "required": ["max_iterations", "credit_usd"],
+      "properties": {
+        "max_iterations": { "type": "integer", "description": "Tope de vueltas del loop antes de parar y pedir GO." },
+        "credit_usd": { "type": "number", "description": "Tope de gasto del crédito Agent SDK para esta misión. Autopausa al 80%." },
+        "no_progress_limit": { "type": "integer", "default": 4, "description": "Si el estado no cambia en K vueltas, para y avisa." },
+        "wall_clock_hours": { "type": "number", "default": 24, "description": "Tope de tiempo de pared." }
+      }
+    },
+    "gates": {
+      "type": "object",
+      "description": "Política de interrupción human-in-the-loop.",
+      "required": ["payment", "irreversible"],
+      "properties": {
+        "payment": {
+          "type": "boolean",
+          "default": true,
+          "description": "Cualquier salida de dinero (dominio, publicidad, upgrade) requiere tu GO."
+        },
+        "irreversible": {
+          "type": "boolean",
+          "default": true,
+          "description": "Acciones irreversibles (borrar, publicar, enviar email externo) requieren tu GO."
+        },
+        "human_input_keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["captcha", "otp", "verification code", "2fa", "sms code"],
+          "description": "Si la acción topa con uno de estos, agrupa y pide tus ojos en lote."
+        }
+      }
+    },
+    "notify_email": {
+      "type": "string",
+      "description": "Email donde llegan los gates. Por defecto el del dispatcher."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["inbox", "active", "waiting_human", "done", "failed", "aborted"],
+      "default": "inbox"
+    }
+  }
+}

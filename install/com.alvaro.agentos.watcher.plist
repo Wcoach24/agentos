@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.alvaro.agentos.watcher.plist
+  Daemon launchd que mantiene el watcher vivo y lo reinicia si cae.
+
+  INSTALACIÓN (en el Mac Mini):
+    1) Edita las rutas absolutas marcadas con  <<<EDITA>>>  abajo.
+    2) cp este fichero a:  ~/Library/LaunchAgents/com.alvaro.agentos.watcher.plist
+    3) launchctl load  ~/Library/LaunchAgents/com.alvaro.agentos.watcher.plist
+    4) launchctl start com.alvaro.agentos.watcher
+    Logs en los paths StandardOut/Error de abajo.
+
+  NOTA AUTH: NO incluimos ANTHROPIC_API_KEY a propósito. Así el SDK usa el
+  crédito de tu plan Max 20x y nunca pago-por-token. Las credenciales del plan
+  las gestiona el CLI de Claude Code (haz `claude` interactivo una vez para login).
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.alvaro.agentos.watcher</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/env</string>
+        <string>bash</string>
+        <string>-lc</string>
+        <!-- rutas reales de Alvaro (Mac Mini). Carga .env + venv antes del watcher. -->
+        <string>cd /Users/zorro/agentos &amp;&amp; set -a &amp;&amp; source .env &amp;&amp; set +a &amp;&amp; source .venv/bin/activate &amp;&amp; exec python bin/watcher.py</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- PATH DEBE incluir el bin de node donde está 'claude' (~/.hermes/node/bin),
+             si no el SDK no encuentra el CLI y falla la auth del plan. -->
+        <key>PATH</key>
+        <string>/Users/zorro/.hermes/node/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/zorro/agentos/state/watcher.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/zorro/agentos/state/watcher.err.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>

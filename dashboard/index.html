@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgentOS — Centro Operativo</title>
+<style>
+  :root{
+    --bg:#0a0e14; --panel:#0f1620; --panel2:#131c28; --line:#1e2a3a;
+    --ink:#e6edf3; --muted:#7d8da3; --mutd:#566377;
+    --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --amber:#f59e0b; --violet:#8b5cf6;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 20px 60px}
+  /* login */
+  #login{position:fixed;inset:0;background:#070a0f;display:flex;align-items:center;justify-content:center;z-index:50}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px 28px;width:340px;text-align:center}
+  .card .dot{width:12px;height:12px;border-radius:50%;background:var(--green);display:inline-block;margin-bottom:12px;animation:pulse 2s infinite}
+  .card h1{font-size:18px;margin:0 0 4px} .card p{color:var(--mutd);font-size:13px;margin:0 0 18px}
+  .card input{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);padding:11px 13px;font:14px var(--mono);outline:none}
+  .card input:focus{border-color:var(--blue)}
+  .card button{width:100%;margin-top:10px;background:var(--blue);color:#fff;border:0;border-radius:10px;
+    padding:11px;font-weight:600;font-size:14px;cursor:pointer}
+  .card .e{color:var(--red);font:12px var(--mono);min-height:16px;margin-top:8px}
+  /* top */
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+  h1{font-size:19px;margin:0;letter-spacing:.2px;font-weight:700} h1 span{color:var(--muted);font-weight:500}
+  .meta{margin-left:auto;font:12px/1.4 var(--mono);color:var(--muted);text-align:right}
+  .sub{color:var(--mutd);font-size:13px;margin:0 0 18px}
+  .h2{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mutd);margin:24px 0 11px;font-weight:600}
+  /* system bar */
+  .sys{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px}
+  .sysitem{display:flex;align-items:center;gap:7px;font:12.5px var(--mono);color:var(--muted)}
+  .led{width:9px;height:9px;border-radius:50%;background:var(--mutd)}
+  .led.on{background:var(--green);box-shadow:0 0 6px var(--green)} .led.off{background:var(--red)} .led.warn{background:var(--amber)}
+  .sysbtn{margin-left:auto;display:flex;gap:8px}
+  .btn{font:12px var(--mono);border-radius:8px;padding:6px 12px;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--ink)}
+  .btn:hover{border-color:#2b3a4f}
+  .btn.amber{color:var(--amber);border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+  .btn.green{color:var(--green);border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+  .btn.red{color:var(--red);border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08)}
+  /* loop */
+  .loop{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .pipe{display:flex;gap:0;flex-wrap:wrap}
+  .node{flex:1 1 0;min-width:150px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px 13px}
+  .node .k{font:11px var(--mono);color:var(--blue);letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+  .node .t{font-size:13px;font-weight:600} .node .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+  .arrow{display:flex;align-items:center;justify-content:center;color:var(--mutd);font-size:18px;padding:0 4px;min-width:24px}
+  .gate{margin-top:12px;font-size:12.5px;color:var(--muted);background:rgba(245,158,11,.06);border:1px dashed rgba(245,158,11,.35);border-radius:10px;padding:9px 12px}
+  .gate b{color:var(--amber)}
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 13px}
+  .kpi .v{font:22px var(--mono);font-weight:600} .kpi .l{font-size:11px;color:var(--mutd);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .kpi.b .v{color:var(--blue)} .kpi.g .v{color:var(--green)} .kpi.r .v{color:var(--red)} .kpi.a .v{color:var(--amber)}
+  /* charts */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .chart .ct{font:11px var(--mono);color:var(--mutd);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+  .bar{display:flex;align-items:center;gap:8px;margin:6px 0;font:11.5px var(--mono)}
+  .bar .nm{width:120px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .tk{flex:1;height:8px;background:var(--panel2);border-radius:5px;overflow:hidden}
+  .bar .fl{height:100%;border-radius:5px;background:var(--blue)}
+  .bar .vl{width:46px;text-align:right;color:var(--ink)}
+  /* filters */
+  .filt{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:11px}
+  .filt input{flex:1;min-width:160px;background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:8px 11px;font:13px var(--mono);outline:none}
+  .filt input:focus{border-color:var(--blue)}
+  .chip{font:11px var(--mono);padding:6px 11px;border-radius:20px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:.4px}
+  .chip.sel{color:var(--ink);border-color:#33455c;background:var(--panel2)}
+  /* rows */
+  .rows{display:flex;flex-direction:column;gap:9px}
+  .row{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 15px;cursor:pointer;transition:border-color .15s}
+  .row:hover{border-color:#2b3a4f}
+  .rmain{display:flex;align-items:center;gap:13px}
+  .pill{font:11px var(--mono);font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;text-transform:uppercase;letter-spacing:.4px;border:1px solid transparent}
+  .s-active{color:var(--blue);background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3)}
+  .s-done{color:var(--green);background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3)}
+  .s-aborted{color:var(--red);background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.3)}
+  .s-paused{color:var(--amber);background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.3)}
+  .info{flex:1;min-width:0} .title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .id{font:11.5px var(--mono);color:var(--mutd);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stat{text-align:right;min-width:50px} .stat .n{font:15px var(--mono);font-weight:600} .stat .c{font-size:10px;color:var(--mutd);text-transform:uppercase}
+  .blink{animation:blink 1.4s ease-in-out infinite} @keyframes blink{50%{opacity:.4}}
+  .acts{display:flex;gap:6px}
+  .det{margin-top:11px;padding-top:11px;border-top:1px solid var(--line);font:12.5px var(--mono);color:var(--muted);display:none}
+  .det.open{display:block}
+  .det .kv{margin:3px 0} .det .kv b{color:var(--ink);font-weight:600}
+  .dod{display:flex;align-items:center;gap:7px;margin:4px 0;font-size:12px}
+  .dod .mk{width:15px} .dod.ok .mk{color:var(--green)} .dod.no .mk{color:var(--red)}
+  .go{font:12px var(--mono);color:var(--green);text-decoration:none;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);padding:5px 10px;border-radius:8px}
+  .foot{margin-top:28px;color:var(--mutd);font-size:12.5px;line-height:1.7;border-top:1px solid var(--line);padding-top:15px}
+  .foot b{color:var(--muted)}
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 16px;font:13px var(--mono);opacity:0;transition:opacity .25s;pointer-events:none;z-index:40}
+  #toast.show{opacity:1} #toast.ok{border-color:rgba(34,197,94,.4)} #toast.err{border-color:rgba(239,68,68,.4);color:#fecaca}
+  @media(max-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}.charts{grid-template-columns:1fr}.arrow{display:none}.node{min-width:46%}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <span class="dot"></span>
+    <h1>AgentOS</h1><p>Centro Operativo · acceso</p>
+    <input id="pw" type="password" placeholder="contraseña" autofocus>
+    <button onclick="doLogin()">Entrar</button>
+    <div class="e" id="loginErr"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="top">
+    <span class="dot"></span>
+    <h1>AgentOS <span>· Centro Operativo</span></h1>
+    <div class="meta"><div id="clock">—</div><div id="ago" style="color:var(--mutd)">cargando…</div></div>
+  </div>
+  <p class="sub">Monitoriza y controla lo que el agente ejecuta. Cada misión pasa por el bucle del SDK y se para sola en lo que importa.</p>
+
+  <div class="h2">Sistema</div>
+  <div class="sys" id="sys"></div>
+
+  <div class="h2">El SDK en acción · el bucle de cada misión</div>
+  <div class="loop">
+    <div class="pipe">
+      <div class="node"><div class="k">1 · plan</div><div class="t">El agente actúa</div><div class="d">Siguiente paso real hacia el objetivo.</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="k">2 · bookkeep</div><div class="t">Lleva la cuenta</div><div class="d">Coste, vueltas y topes (tiempo/iteraciones/no-progreso).</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="k">3 · verify</div><div class="t">Verificador independiente</div><div class="d">Comprueba el DoD con checks de máquina.</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="k">4 · route</div><div class="t">¿Hecho, gate u otra vuelta?</div><div class="d">Cierra, gatea, o vuelve a plan con feedback.</div></div>
+    </div>
+    <div class="gate">🔔 <b>Gates</b> — se detiene a pedir <b>GO/NO</b> (aquí o por Telegram) ante dinero o algo irreversible. Lo demás es autónomo.</div>
+  </div>
+
+  <div class="h2">Resumen</div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="h2">Actividad</div>
+  <div class="charts" id="charts"></div>
+
+  <div class="h2">Misiones</div>
+  <div class="filt">
+    <input id="q" placeholder="buscar por título o id…" oninput="render()">
+    <span class="chip sel" data-f="all" onclick="setFilter(this)">todas</span>
+    <span class="chip" data-f="active" onclick="setFilter(this)">activas</span>
+    <span class="chip" data-f="done" onclick="setFilter(this)">hechas</span>
+    <span class="chip" data-f="aborted" onclick="setFilter(this)">abortadas</span>
+    <span class="chip" data-f="paused" onclick="setFilter(this)">pausadas</span>
+  </div>
+  <div class="rows" id="rows"></div>
+  <div class="e" id="err" style="color:var(--amber);font:12px var(--mono);margin-top:8px;min-height:16px"></div>
+
+  <div class="foot">
+    <b>Acciones.</b> Clic en una misión para ver el detalle (paso actual + checklist del DoD).
+    <span style="color:var(--red)">Abortar</span> mata la activa · <span style="color:var(--green)">GO/NO</span> resuelve un gate ·
+    <span style="color:var(--blue)">Reintentar</span> reencola de cero · <b>Freeze</b> detiene el daemon.
+    Gasto $0 = incluido en el plan. Refresco 5 s.
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPA_URL="https://wxxezbvgoqsxgfpfgefp.supabase.co", SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4eGV6YnZnb3FzeGdmcGZnZWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgwMDk3MDksImV4cCI6MjA2MzU4NTcwOX0.sl0IF30YJwVepCxmegtaQ6XAW0Gz1SNIbm50vJ9iHns", PASS_HASH="58d7ffc0dd8c5713c1edd901a13a4b2624ba8cc2c34327544bc64f8450ed753e";
+let MISS=[], HB=null, FILTER="all", OPEN=new Set(), lastOk=null;
+
+async function sha256(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));
+  return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function doLogin(){
+  const v=document.getElementById("pw").value;
+  if(await sha256(v)===PASS_HASH){ window.__PASS=v; document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block"; tick(); setInterval(tick,5000); }
+  else document.getElementById("loginErr").textContent="contraseña incorrecta";
+}
+document.getElementById("pw").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
+
+function esc(t){const d=document.createElement("div");d.textContent=t==null?"":String(t);return d.innerHTML;}
+function ago(iso){if(!iso)return"—";let s=Math.max(0,(Date.now()-new Date(iso).getTime())/1000);
+  if(s<60)return Math.floor(s)+"s"; if(s<3600)return Math.floor(s/60)+" min"; if(s<86400)return Math.floor(s/3600)+" h"; return Math.floor(s/86400)+" d";}
+function money(v){const n=Number(v||0);return n>0?"$"+n.toFixed(2):"$0";}
+function toast(m,ok){const t=document.getElementById("toast");t.textContent=m;t.className="show "+(ok?"ok":"err");
+  setTimeout(()=>t.className="",2600);}
+
+async function api(path){const r=await fetch(SUPA_URL+path,{headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY}});
+  if(!r.ok)throw new Error("HTTP "+r.status); return r.json();}
+
+async function sendCommand(action,mid,args,ev){
+  if(ev)ev.stopPropagation();
+  try{
+    const r=await fetch(SUPA_URL+"/rest/v1/agentos_commands",{method:"POST",
+      headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},
+      body:JSON.stringify([{action,mission_id:mid||null,args:args||null,pass:window.__PASS}])});
+    if(r.status===201||r.status===204||r.status===200){toast("✓ "+action+(mid?" · "+mid:""),true);setTimeout(tick,800);}
+    else if(r.status===401||r.status===403)toast("✗ rechazado (contraseña)",false);
+    else{const t=await r.text();toast("✗ "+(/exist|relation/.test(t)?"canal no creado aún — corre deploy_runtime.sh":("error "+r.status)),false);}
+  }catch(e){toast("✗ "+e.message,false);}
+}
+
+function setFilter(el){FILTER=el.dataset.f;document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("sel",c===el));render();}
+function toggle(id){OPEN.has(id)?OPEN.delete(id):OPEN.add(id);render();}
+
+function renderSys(){
+  const el=document.getElementById("sys");
+  const alive=HB&&HB.updated_at&&((Date.now()-new Date(HB.updated_at).getTime())/1000<120);
+  const st=HB?HB.status:"—", frozen=HB&&HB.frozen;
+  const paused=MISS.filter(m=>m.status==="paused").length;
+  el.innerHTML=
+    `<div class="sysitem"><span class="led ${alive?'on':'off'}"></span>daemon ${alive?'vivo':'caído'}</div>`+
+    `<div class="sysitem"><span class="led ${st==='running'?'on':st==='waiting_gate'?'warn':''}"></span>estado: ${esc(st)}${HB&&HB.active_mission?(' · '+esc(HB.active_mission)):''}</div>`+
+    `<div class="sysitem"><span class="led ${frozen?'warn':'on'}"></span>${frozen?'CONGELADO':'operativo'}</div>`+
+    `<div class="sysitem"><span class="led ${paused?'warn':''}"></span>${paused} en rate-limit</div>`+
+    `<div class="sysbtn">`+
+      (frozen?`<button class="btn green" onclick="sendCommand('unfreeze',null,null,event)">▶ Reanudar daemon</button>`
+             :`<button class="btn amber" onclick="sendCommand('freeze',null,null,event)">❄ Freeze daemon</button>`)+
+    `</div>`;
+}
+function renderKpis(){
+  const by=s=>MISS.filter(m=>m.status===s).length;
+  const spend=MISS.reduce((a,m)=>a+Number(m.spend_usd||0),0);
+  const iters=MISS.reduce((a,m)=>a+Number(m.iterations||0),0);
+  document.getElementById("kpis").innerHTML=[
+    ["",MISS.length,"Misiones"],["b",by("active"),"Activas"],["g",by("done"),"Hechas"],
+    ["r",by("aborted"),"Abortadas"],["",iters,"Vueltas"],["",money(spend),"Gasto"]
+  ].map(([c,v,l])=>`<div class="kpi ${c}"><div class="v">${esc(v)}</div><div class="l">${l}</div></div>`).join("");
+}
+function bars(title,vals,fmt,color){
+  const max=Math.max(1,...vals.map(v=>v[1]));
+  const rows=vals.slice(0,6).map(([nm,v])=>`<div class="bar"><span class="nm">${esc(nm)}</span>`+
+    `<span class="tk"><span class="fl" style="width:${Math.round(v/max*100)}%;background:${color}"></span></span>`+
+    `<span class="vl">${fmt(v)}</span></div>`).join("")||`<div class="bar"><span class="nm" style="color:var(--mutd)">sin datos</span></div>`;
+  return `<div class="chart"><div class="ct">${title}</div>${rows}</div>`;
+}
+function renderCharts(){
+  const lbl=m=>(m.title||m.id||"").slice(0,22);
+  const it=[...MISS].filter(m=>m.iterations).sort((a,b)=>b.iterations-a.iterations).map(m=>[lbl(m),Number(m.iterations)]);
+  const sp=[...MISS].filter(m=>Number(m.spend_usd)>0).sort((a,b)=>b.spend_usd-a.spend_usd).map(m=>[lbl(m),Number(m.spend_usd)]);
+  document.getElementById("charts").innerHTML=
+    bars("Vueltas por misión",it,v=>v,"var(--blue)")+
+    bars("Gasto por misión",sp,v=>"$"+v.toFixed(2),"var(--green)");
+}
+function actions(m){
+  const st=m.status, atGate=HB&&HB.status==="waiting_gate"&&HB.active_mission===m.id;
+  let h="";
+  if(atGate){h+=`<button class="btn green" onclick="sendCommand('approve_gate','${esc(m.id)}',null,event)">✅ GO</button>`+
+                `<button class="btn red" onclick="sendCommand('reject_gate','${esc(m.id)}',null,event)">❌ NO</button>`;}
+  if(st==="active")h+=`<button class="btn red" onclick="sendCommand('abort','${esc(m.id)}',null,event)">■ Abortar</button>`;
+  if(st==="aborted"||st==="done"||st==="paused")h+=`<button class="btn" onclick="sendCommand('retry','${esc(m.id)}',null,event)">↻ Reintentar</button>`;
+  return h;
+}
+function detail(m){
+  let dod="";
+  try{const arr=Array.isArray(m.dod)?m.dod:(m.dod?JSON.parse(m.dod):[]);
+    dod=arr.map(d=>`<div class="dod ${d.passed?'ok':'no'}"><span class="mk">${d.passed?'✓':'✗'}</span><span><b>${esc(d.id)}</b> — ${esc(d.evidence||'')}</span></div>`).join("");
+  }catch(e){}
+  return `<div class="kv"><b>paso actual:</b> ${esc(m.node||'—')}</div>`+
+    `<div class="kv"><b>última acción:</b> ${esc(m.last_action||'—')}</div>`+
+    (m.note?`<div class="kv"><b>nota:</b> ${esc(m.note)}</div>`:"")+
+    `<div class="kv"><b>vueltas:</b> ${esc(m.iterations??0)} · <b>gasto:</b> ${money(m.spend_usd)}</div>`+
+    (dod?`<div class="kv" style="margin-top:7px"><b>DoD:</b></div>${dod}`:"");
+}
+function render(){
+  renderSys();renderKpis();renderCharts();
+  const q=(document.getElementById("q").value||"").toLowerCase();
+  let list=MISS.filter(m=>FILTER==="all"||m.status===FILTER)
+    .filter(m=>!q||((m.title||"")+" "+(m.id||"")).toLowerCase().includes(q));
+  const rows=document.getElementById("rows");
+  if(!list.length){rows.innerHTML=`<div class="row"><div class="rmain"><div class="info"><div class="title">Sin misiones</div><div class="id">aparecerán según el agente trabaje</div></div></div></div>`;return;}
+  rows.innerHTML=list.map(m=>{
+    const st=(m.status||"").toLowerCase(), open=OPEN.has(m.id);
+    const link=(m.result_url&&/^https?:/.test(m.result_url))?`<a class="go" href="${esc(m.result_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Abrir ↗</a>`:"";
+    return `<div class="row" onclick="toggle('${esc(m.id)}')">
+      <div class="rmain">
+        <span class="pill s-${esc(st)}">${esc(st||'?')}</span>
+        <div class="info"><div class="title">${esc(m.title||m.id)}</div><div class="id">${esc(m.id)} · hace ${ago(m.updated_at)}</div></div>
+        <div class="stat"><div class="n ${st==='active'?'blink':''}">${esc(m.iterations??0)}</div><div class="c">vueltas</div></div>
+        <div class="stat"><div class="n">${money(m.spend_usd)}</div><div class="c">gasto</div></div>
+        <div class="acts">${link}${actions(m)}</div>
+      </div>
+      <div class="det ${open?'open':''}">${open?detail(m):''}</div>
+    </div>`;
+  }).join("");
+}
+async function tick(){
+  document.getElementById("clock").textContent=new Date().toLocaleTimeString("es-ES");
+  try{
+    MISS=await api("/rest/v1/agentos_missions?select=*&order=updated_at.desc");
+    try{const hb=await api("/rest/v1/agentos_heartbeat?id=eq.1&select=*");HB=hb&&hb[0]||null;}catch(e){HB=null;}
+    render();lastOk=Date.now();
+    document.getElementById("err").textContent="";
+    document.getElementById("ago").textContent="al día · "+MISS.length+" misiones";
+  }catch(e){
+    document.getElementById("err").textContent="⚠ no pude leer Supabase ("+e.message+"). Reintentando…";
+  }
+}
+</script>
+</body>
+</html>
