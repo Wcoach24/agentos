@@ -21,7 +21,7 @@ from __future__ import annotations
 import os, sys, time, json, subprocess, shutil, glob, urllib.request, sqlite3
 import yaml
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../agent-os
+ROOT = os.environ.get("AGENTOS_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../agent-os
 sys.path.insert(0, ROOT)  # para 'from orchestrator import gates' al correr como script
 INBOX = os.path.join(ROOT, "missions", "inbox")
 ACTIVE = os.path.join(ROOT, "missions", "active")
