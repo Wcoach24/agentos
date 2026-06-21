@@ -2,11 +2,21 @@
 
 **Un agente autónomo que ejecuta misiones hasta un "hecho" verificable por máquina — y se para solo en lo que importa.**
 
-La mayoría de los agentes saben *empezar* tareas. El problema difícil es *pararlas bien*: saber, con evidencia objetiva, que algo está terminado — sin que el propio agente sea juez y parte. AgentOS pone ese juicio en el centro.
+> **→ [github.com/Wcoach24/agentos](https://github.com/Wcoach24/agentos)** — código público, README con arquitectura, instalable en 5 min.
 
-> **Demo en directo:** este mismo README fue generado por AgentOS ejecutando la misión `2026-06-21-agentos-reliable-public` — una misión que se verificó a sí misma.
+---
 
-**→ [Lee el código](https://github.com/Wcoach24/agentos)** · **[Pruébalo tú](#cómo-correrlo)** · **[Dashboard en vivo](https://agentos-centro-wcoach24s-projects.vercel.app)**
+## Pitch de 60 segundos
+
+La mayoría de los agentes saben *empezar* tareas. El problema difícil es *terminarlas bien*: saber, con evidencia objetiva, que algo está realmente hecho — sin que el propio agente sea juez y parte.
+
+**AgentOS resuelve eso.** Recibe una misión en YAML con un *Definition of Done* (DoD) comprobable por máquina, la ejecuta en un bucle autónomo `plan → bookkeep → verify → route`, y solo cierra cuando un **verificador independiente** (en contexto separado, modo read-only) da el visto bueno mediante checks objetivos: `http_status`, `file_exists`, `command_exit_zero`, `file_contains`. El juicio de un LLM (`agent_judgment`) puede sumar criterio de calidad, pero **nunca cierra una misión por sí solo**.
+
+Corre 24/7 en un Mac Mini bajo `launchd`. Este mismo README es el entregable de la misión `2026-06-21-agentos-reliable-public` — una misión que se verificó a sí misma.
+
+**Para un reclutador**: bucle de agente con DoD comprobable por máquina, arquitectura de 5 capas, operativo en producción.  
+**Para un VP Engineering**: verificador independiente anti reward-hacking, gates GO/NO por Telegram, resumible tras crash.  
+**Para un inversor**: infraestructura de agentes lista para escalar: cualquier idea → YAML → resultado verificado, sin supervisión manual.
 
 ---
 
@@ -203,9 +213,9 @@ gates: { payment: true, irreversible: true }
 - ✅ Watcher con heartbeat fiable bajo launchd (KeepAlive)
 - ✅ Verificador independiente + DoD de máquina
 - ✅ Gates por Telegram con botones GO/NO
-- ✅ Dashboard web de control ([agentos-centro](https://agentos-centro-wcoach24s-projects.vercel.app))
 - ✅ Idempotencia: cada misión corre exactamente una vez
 - ✅ Re-runs limpios (checkpoint se borra en re-run fresco)
+- ✅ Repo público: [github.com/Wcoach24/agentos](https://github.com/Wcoach24/agentos)
 
 ## Hoja de ruta
 
