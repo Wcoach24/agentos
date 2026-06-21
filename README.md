@@ -6,6 +6,8 @@ La mayoría de los agentes saben *empezar* tareas. El problema difícil es *para
 
 > **Demo en directo:** este mismo README fue generado por AgentOS ejecutando la misión `2026-06-21-agentos-reliable-public` — una misión que se verificó a sí misma.
 
+**→ [Lee el código](https://github.com/Wcoach24/agentos)** · **[Pruébalo tú](#cómo-correrlo)** · **[Dashboard en vivo](https://agentos-centro-wcoach24s-projects.vercel.app)**
+
 ---
 
 ## Qué es
