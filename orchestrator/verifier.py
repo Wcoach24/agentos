@@ -12,7 +12,7 @@ Tipos de verificación:
   - agent_judgment     : juicio de un subagente FRESCO (contexto limpio) contra una rúbrica.
 """
 from __future__ import annotations
-import os, subprocess, urllib.request
+import os, re, subprocess, urllib.request
 from dataclasses import dataclass
 from .engine import run_agent
 
@@ -41,8 +41,13 @@ def _http_status(target: str, expected: str) -> CheckResult:
 
 
 def _command_exit_zero(target: str, cwd: str) -> CheckResult:
+    # macOS fix: pgrep by default excludes its own ancestor processes. Since the
+    # verifier runs inside the watcher's process tree, a bare `pgrep -f 'watcher.py'`
+    # would ALWAYS return exit 1 (watcher excluded as ancestor) even when the watcher
+    # is alive. Adding -a makes pgrep include ancestors so the check reflects reality.
+    effective = re.sub(r'\bpgrep\b(?! -a\b)', 'pgrep -a', target)
     try:
-        r = subprocess.run(target, shell=True, cwd=cwd, capture_output=True, timeout=120)
+        r = subprocess.run(effective, shell=True, cwd=cwd, capture_output=True, timeout=120)
         ok = r.returncode == 0
         return CheckResult("", ok, f"$ {target} -> exit {r.returncode}")
     except Exception as e:
