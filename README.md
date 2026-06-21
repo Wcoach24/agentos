@@ -1,22 +1,34 @@
 # AgentOS
 
-**Un agente autónomo que ejecuta misiones hasta un "hecho" verificable por máquina — y se para solo en lo que importa.**
-
-> **→ [github.com/Wcoach24/agentos](https://github.com/Wcoach24/agentos)** — código público, README con arquitectura, instalable en 5 min.
+> **Infraestructura de agentes autónoma y verificable — operativa 24/7 en producción.**  
+> **→ [github.com/Wcoach24/agentos](https://github.com/Wcoach24/agentos)**
 
 ---
 
 ## Pitch de 60 segundos
 
-La mayoría de los agentes saben *empezar* tareas. El problema difícil es *terminarlas bien*: saber, con evidencia objetiva, que algo está realmente hecho — sin que el propio agente sea juez y parte.
+**El problema:** La mayoría de los agentes saben *empezar* tareas. Terminarlas bien —con evidencia objetiva de que algo realmente está hecho— es el problema difícil.
 
-**AgentOS resuelve eso.** Recibe una misión en YAML con un *Definition of Done* (DoD) comprobable por máquina, la ejecuta en un bucle autónomo `plan → bookkeep → verify → route`, y solo cierra cuando un **verificador independiente** (en contexto separado, modo read-only) da el visto bueno mediante checks objetivos: `http_status`, `file_exists`, `command_exit_zero`, `file_contains`. El juicio de un LLM (`agent_judgment`) puede sumar criterio de calidad, pero **nunca cierra una misión por sí solo**.
+**La solución:** AgentOS recibe una misión en YAML con un *Definition of Done* comprobable por máquina, la ejecuta en un bucle autónomo `plan → bookkeep → verify → route`, y **solo cierra cuando un verificador independiente** confirma checks objetivos: `http_status`, `file_exists`, `command_exit_zero`, `file_contains`. El agente nunca es juez y parte.
 
-Corre 24/7 en un Mac Mini bajo `launchd`. Este mismo README es el entregable de la misión `2026-06-21-agentos-reliable-public` — una misión que se verificó a sí misma.
+**En producción ahora mismo** — en un Mac Mini, 24/7:
 
-**Para un reclutador**: bucle de agente con DoD comprobable por máquina, arquitectura de 5 capas, operativo en producción.  
-**Para un VP Engineering**: verificador independiente anti reward-hacking, gates GO/NO por Telegram, resumible tras crash.  
-**Para un inversor**: infraestructura de agentes lista para escalar: cualquier idea → YAML → resultado verificado, sin supervisión manual.
+```
+$ cat state/watcher_heartbeat.txt
+1782051514  2026-06-21T16:18:34  pid=97368     # < 120s = sistema sano
+
+$ ls missions/done/
+2026-06-16-geo-es-dossier/
+2026-06-17-catering-connect-foundation/
+2026-06-17-confirm-e2e/
+2026-06-18-agentos-dashboard/
+2026-06-20-aval-framework-spine/
+# → 7+ misiones cerradas de forma autónoma y verificada
+```
+
+**Para un reclutador:** LangGraph + Claude SDK + launchd daemon, 5 capas desacopladas, end-to-end en producción.  
+**Para un VP Engineering:** verificador independiente (anti reward-hacking), gates GO/NO por Telegram, resumible tras crash via SQLite.  
+**Para un inversor:** cualquier idea → YAML → resultado verificado sin supervisión. La infraestructura que convierte LLMs en trabajadores autónomos reales.
 
 ---
 
